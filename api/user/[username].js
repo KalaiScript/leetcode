@@ -43,17 +43,16 @@ export default async function handler(req, res) {
         headers: {
             'Content-Type': 'application/json',
             'Referer': 'https://leetcode.com',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Content-Length': Buffer.byteLength(payload) // Good practice
+            'Origin': 'https://leetcode.com', // Added Origin
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Encoding': 'identity', // Prevent compressed response
+            'Content-Length': Buffer.byteLength(payload)
         }
     };
 
     return new Promise((resolve, reject) => {
         const proxyReq = https.request(leetCodeUrl, options, (proxyRes) => {
             let data = '';
-
-            // Forward status code
-            res.status(proxyRes.statusCode);
 
             proxyRes.on('data', (chunk) => {
                 data += chunk;
@@ -62,10 +61,18 @@ export default async function handler(req, res) {
             proxyRes.on('end', () => {
                 try {
                     const jsonData = JSON.parse(data);
-                    res.json(jsonData);
+
+                    // Check for GraphQL errors
+                    if (jsonData.errors) {
+                        res.status(400).json({ error: 'LeetCode API Error', details: jsonData.errors });
+                    } else {
+                        res.status(200).json(jsonData);
+                    }
                     resolve();
                 } catch (e) {
-                    res.status(500).json({ error: 'Failed to parse response from LeetCode' });
+                    console.error('Parse Error:', e);
+                    // Return the raw text for debugging if JSON parse fails (likely HTML from Cloudflare)
+                    res.status(502).json({ error: 'Failed to parse response', raw: data.substring(0, 100) });
                     resolve();
                 }
             });
