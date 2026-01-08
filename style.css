@@ -383,3 +383,222 @@ tr:hover .delete-btn {
     text-align: center;
     color: var(--text-secondary);
 }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+
+    /* Layout Adjustments */
+    body {
+        padding: 20px 10px;
+    }
+
+    .container {
+        gap: 20px;
+    }
+
+    /* Header */
+    .logo i {
+        font-size: 2rem;
+    }
+
+    .logo h1 {
+        font-size: 1.8rem;
+    }
+
+    .subtitle {
+        font-size: 0.95rem;
+        padding: 0 10px;
+    }
+
+    /* Input Section */
+    .input-section {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    input {
+        width: 100%;
+        padding: 15px;
+    }
+
+    button {
+        width: 100%;
+        justify-content: center;
+        padding: 15px;
+    }
+
+    /* Dashboard Header */
+    .leaderboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .leaderboard-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .leaderboard-header>div {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Table to Card Transformation */
+    .table-container {
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        backdrop-filter: none;
+    }
+
+    table,
+    thead,
+    tbody,
+    th,
+    td,
+    tr {
+        display: block;
+    }
+
+    /* Hide table headers (but keep for accessibility/structure if needed hidden) */
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    tr {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        margin-bottom: 20px;
+        position: relative;
+        padding: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    tr:hover {
+        background: rgba(30, 41, 59, 0.9);
+        transform: translateY(-2px);
+    }
+
+    td {
+        border: none;
+        position: relative;
+        padding: 5px 0;
+    }
+
+    /* Rank (Position absolute like a badge) */
+    td:nth-of-type(1) {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        padding: 0;
+        z-index: 2;
+    }
+
+    td:nth-of-type(1) span {
+        background: var(--glass-bg);
+        padding: 4px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--glass-border);
+        font-size: 0.9rem !important;
+    }
+
+    /* User Info (Center or adjust) */
+    td:nth-of-type(2) {
+        margin-top: 30px;
+        /* Space for Rank */
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .user-cell {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .username {
+        font-size: 1.2rem;
+    }
+
+    /* Delete Button (Position absolute top right) */
+    td:nth-last-of-type(1) {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 0;
+        text-align: right;
+    }
+
+    .delete-btn {
+        opacity: 0.8;
+        padding: 8px;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 8px;
+        color: var(--danger);
+    }
+
+    /* Stats Grid */
+    /* We will use grid for Today, Total, Diff columns */
+    /* These are nth-of-type 3, 4, 5 */
+
+    /* Helper labels for mobile */
+    td:nth-of-type(3)::before {
+        content: "Solved Today";
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+
+    td:nth-of-type(4)::before {
+        content: "Total Solved";
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+
+    td:nth-of-type(5)::before {
+        content: "Difficulty Split";
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+
+    td:nth-of-type(3),
+    td:nth-of-type(4),
+    td:nth-of-type(5) {
+        border-top: 1px solid var(--glass-border);
+        padding: 12px 0;
+        text-align: center;
+    }
+
+    /* Last Solved */
+    td:nth-of-type(6) {
+        border-top: 1px solid var(--glass-border);
+        padding-top: 12px;
+        text-align: center;
+        font-size: 0.85rem;
+    }
+
+    .diff-mini-bar {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .diff-text {
+        justify-content: center;
+    }
+}
