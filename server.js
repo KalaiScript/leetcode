@@ -54,7 +54,7 @@ const fetchLeetCodeData = (username) => {
                 try {
                     const parsed = JSON.parse(data);
                     if (parsed.errors) {
-                         // Some users might not match, but we resolve to handle it gracefully in frontend
+                        // Some users might not match, but we resolve to handle it gracefully in frontend
                         resolve({ error: parsed.errors[0].message });
                     } else {
                         resolve(parsed.data);
@@ -75,7 +75,7 @@ const server = http.createServer(async (req, res) => {
     // Basic CORS and headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    
+
     if (req.method === 'OPTIONS') {
         res.writeHead(204);
         res.end();
@@ -124,6 +124,31 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // Serve assets
+    if (req.url.startsWith('/assets/')) {
+        // Remove query parameters (e.g., ?v=2)
+        const safePath = req.url.split('?')[0];
+        const assetPath = path.join(__dirname, safePath);
+
+        fs.readFile(assetPath, (err, data) => {
+            if (err) {
+                res.writeHead(404);
+                res.end();
+            } else {
+                // Basic mime type handling
+                const ext = path.extname(assetPath).toLowerCase();
+                let contentType = 'application/octet-stream';
+                if (ext === '.png') contentType = 'image/png';
+                if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+                if (ext === '.svg') contentType = 'image/svg+xml';
+
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(data);
+            }
+        });
+        return;
+    }
+
     // Serve favicon (ignore)
     if (req.url === '/favicon.ico') {
         res.writeHead(204);
@@ -135,7 +160,7 @@ const server = http.createServer(async (req, res) => {
     if (req.url.startsWith('/api/user/')) {
         const parts = req.url.split('/');
         const username = parts[3]; // /api/user/USERNAME
-        
+
         if (!username) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Username required' }));
