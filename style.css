@@ -88,10 +88,10 @@ header {
     margin-bottom: 10px;
 }
 
-.logo i {
-    font-size: 2rem;
-    color: var(--accent-color);
-    text-shadow: 0 0 20px var(--accent-glow);
+.logo img {
+    height: 40px;
+    width: auto;
+    filter: drop-shadow(0 0 10px rgba(255, 161, 22, 0.4));
 }
 
 .logo h1 {
