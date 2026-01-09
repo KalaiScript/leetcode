@@ -13,26 +13,114 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Event Listeners
-addBtn.addEventListener('click', handleAddUser);
+addBtn.addEventListener('click', addFriend);
+document.getElementById('downloadBtn').addEventListener('click', exportToCSV);
 usernameInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleAddUser();
+    if (e.key === 'Enter') addFriend();
 });
 
-async function handleAddUser() {
-    let username = usernameInput.value.trim();
-    if (!username) return;
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    if (friends.length > 0) {
+        fetchAllData();
+    } else {
+        userGrid.innerHTML = `
+            <div class="glass-panel" style="grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.7;">
+                <i class="fa-solid fa-user-group" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <h3>No friends added yet</h3>
+                <p>Enter a LeetCode username above to start tracking.</p>
+            </div>
+        `;
+    }
+});
 
-    // Clean up input if user pastes full URL
-    // Removes trailing slashes
-    username = username.replace(/\/+$/, '');
-
-    // Handle https://leetcode.com/u/USERNAME or https://leetcode.com/USERNAME
-    if (username.includes('leetcode.com')) {
-        const parts = username.split('/');
-        username = parts[parts.length - 1];
+function exportToCSV() {
+    if (currentLeaderboardData.length === 0) {
+        alert("No data to export!");
+        return;
     }
 
-    if (usersData.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+    const headers = ["Rank", "Username", "Status", "Problems Today", "Total Solved", "Global Rank", "Contests", "Easy", "Medium", "Hard", "Last Solved Problem", "Last Solved Time"];
+
+    const rows = currentLeaderboardData.map((user, index) => {
+        const lastSub = user.recentSubs.length > 0 ? user.recentSubs[0] : null;
+        const lastProblem = lastSub ? lastSub.title : "-";
+        const lastTime = lastSub ? new Date(parseInt(lastSub.timestamp) * 1000).toLocaleString() : "-";
+
+        return [
+            index + 1,
+            user.username,
+            user.solvedToday ? "Active" : "Sleeping",
+            user.solvedTodayCount,
+            user.totalSolved,
+            user.globalRanking || "-",
+            user.attendedContestsCount,
+            user.easy,
+            user.medium,
+            user.hard,
+            `"${lastProblem}"`, // Quote to handle commas in titles
+            `"${lastTime}"`
+        ];
+    });
+
+    const csvContent = [
+        headers.join(","),
+        ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `leetcode_leaderboard_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function addFriend() {
+    let input = usernameInput.value.trim();
+    if (!input) return;
+
+    // Remove trailing slash if present
+    if (input.endsWith('/')) {
+        input = input.slice(0, -1);
+    }
+
+    // Extraction logic
+    // Supports:
+    // https://leetcode.com/u/username
+    // leetcode.com/u/username
+    // username
+    let username = input;
+
+    try {
+        if (!input.match(/^https?:\/\//)) {
+            if (input.includes('leetcode.com')) {
+                input = 'https://' + input;
+            }
+        }
+
+        if (input.startsWith('http')) {
+            const urlObj = new URL(input);
+            const pathParts = urlObj.pathname.split('/').filter(Boolean); // Remove empty strings
+
+            // Check for /u/username or /username
+            if (pathParts.length > 0) {
+                if (pathParts[0] === 'u' && pathParts.length > 1) {
+                    username = pathParts[1];
+                } else {
+                    username = pathParts[0];
+                }
+            }
+        }
+    } catch (e) {
+        // Not a URL, assume it's a username
+        username = input;
+    }
+
+    if (friends.includes(username)) {
         alert('User already added!');
         return;
     }
