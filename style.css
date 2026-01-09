@@ -488,6 +488,14 @@ tr.user-row:hover {
         order: 6;
     }
 
+    td:nth-of-type(7) {
+        order: 7;
+    }
+
+    td:nth-of-type(8) {
+        order: 8;
+    }
+
     /* Delete Button (Centered at bottom) */
     td:nth-last-of-type(1) {
         order: 7;
@@ -553,6 +561,22 @@ tr.user-row:hover {
     }
 
     td:nth-of-type(5)::before {
+        content: "Global Rank";
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+
+    td:nth-of-type(6)::before {
+        content: "Contests";
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+
+    td:nth-of-type(7)::before {
         content: "Difficulty Split";
         display: block;
         font-size: 0.8rem;
@@ -562,14 +586,16 @@ tr.user-row:hover {
 
     td:nth-of-type(3),
     td:nth-of-type(4),
-    td:nth-of-type(5) {
+    td:nth-of-type(5),
+    td:nth-of-type(6),
+    td:nth-of-type(7) {
         border-top: 1px solid var(--glass-border);
         padding: 12px 0;
         text-align: center;
     }
 
     /* Last Solved */
-    td:nth-of-type(6) {
+    td:nth-of-type(8) {
         border-top: 1px solid var(--glass-border);
         padding-top: 12px;
         text-align: center;

@@ -149,7 +149,7 @@ async function fetchAllData() {
                     baseUrl = 'http://localhost:3000';
                 }
             }
-            const res = await fetch(`${baseUrl}/api/user/${username}`);
+            const res = await fetch(`${baseUrl}/api/user/${username}?t=${new Date().getTime()}`);
             const data = await res.json();
 
             if (data.error) {
@@ -167,6 +167,7 @@ async function fetchAllData() {
 
 function processUserData(username, data) {
     const matchedUser = data.matchedUser;
+    const userContestRanking = data.userContestRanking;
     const recentSubs = data.recentSubmissionList || [];
 
     // 1. Total Solved & Breakdown
@@ -222,9 +223,15 @@ function processUserData(username, data) {
     // or just rely on manual streak if API doesn't return it easily. 
     // For now, let's just display "Solved Today" count as the primary daily metric.
 
+    // 4. Contest Data
+    const attendedContestsCount = userContestRanking ? userContestRanking.attendedContestsCount : 0;
+    const globalRanking = matchedUser && matchedUser.profile ? matchedUser.profile.ranking : 0;
+
     return {
         username,
         totalSolved,
+        globalRanking,
+        attendedContestsCount,
         easy,
         medium,
         hard,
@@ -237,11 +244,8 @@ function processUserData(username, data) {
 }
 
 function renderGrid(data) {
-    // Sort: Solved Today (High to Low), then Total Solved (High to Low)
+    // Sort: Total Solved (High to Low)
     data.sort((a, b) => {
-        if (a.solvedToday !== b.solvedToday) {
-            return a.solvedToday ? -1 : 1;
-        }
         return b.totalSolved - a.totalSolved;
     });
 
@@ -280,6 +284,12 @@ function renderGrid(data) {
             </td>
             <td class="global-rank-cell">
                 #${parseInt(user.globalRank).toLocaleString()}
+            </td>
+            <td>
+                <div class="total-count">${user.globalRanking ? user.globalRanking.toLocaleString() : '-'}</div>
+            </td>
+            <td>
+                <div class="total-count">${user.attendedContestsCount}</div>
             </td>
             <td>
                 <div class="diff-text">
