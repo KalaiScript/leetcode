@@ -8,6 +8,7 @@ const lastUpdatedEl = document.getElementById('lastUpdated');
 let usersData = [];
 
 // Init
+// Init
 document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
 });
@@ -124,7 +125,7 @@ async function addFriend() {
 
         usersData.push(processUserData(username, data));
         saveUsers();
-        renderLeaderboard();
+        renderGrid(usersData);
         usernameInput.value = '';
     } catch (err) {
         alert('Failed to add user: ' + err.message);
@@ -134,36 +135,68 @@ async function addFriend() {
     }
 }
 
-async function fetchAllData() {
-    const loadingState = document.getElementById('loadingState');
-    if (loadingState) loadingState.style.display = 'block';
-    userGrid.innerHTML = ''; // Clear table
-
-    const userData = [];
-
-    for (const username of friends) {
-        try {
-            let baseUrl = '';
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                if (window.location.port === '5500') {
-                    baseUrl = 'http://localhost:3000';
-                }
+async function fetchUserData(username) {
+    try {
+        let baseUrl = '';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            if (window.location.port === '5500') {
+                baseUrl = 'http://localhost:3000';
             }
-            const res = await fetch(`${baseUrl}/api/user/${username}?t=${new Date().getTime()}`);
-            const data = await res.json();
+        }
 
-            if (data.error) {
-                console.error(data.error);
-                continue; // Skip invalid users
-            }
+        const response = await fetch(`${baseUrl}/api/user/${username}`);
 
-            userData.push(processUserData(username, data));
-        } catch (error) {
-            console.error(`Failed to fetch ${username}`, error);
+        // Check if response is JSON
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+            throw new Error("Server Misconfiguration: API returned HTML. You are likely running on Live Server. Please run 'node server.js' and access localhost:3000.");
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `API Error: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        if (error.message.includes("Unexpected token") || error.message.includes("is not valid JSON")) {
+            throw new Error("Failed to connect to backend API. Please run 'node server.js' locally.");
         }
         throw error;
     }
 }
+
+function saveUsers() {
+    localStorage.setItem('leetcode-users', JSON.stringify(usersData.map(u => u.username)));
+}
+
+async function loadUsers() {
+    const saved = JSON.parse(localStorage.getItem('leetcode-users') || '[]');
+    if (saved.length === 0) return;
+
+    if (loadingState) loadingState.style.display = 'block';
+    usersData = [];
+
+    // Parallel fetch for speed
+    const promises = saved.map(username => fetchUserData(username)
+        .then(data => {
+            if (!data.error) {
+                return processUserData(username, data);
+            }
+            return null;
+        })
+        .catch(e => null)
+    );
+
+    const results = await Promise.all(promises);
+    usersData = results.filter(u => u !== null);
+
+    renderGrid(usersData);
+    if (loadingState) loadingState.style.display = 'none';
+    if (lastUpdatedEl) lastUpdatedEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+}
+
+// function fetchAllData() removed - redundancy with loadUsers
 
 function processUserData(username, data) {
     const matchedUser = data.matchedUser;
@@ -241,6 +274,15 @@ function processUserData(username, data) {
         lastSolved: data.recentSubmissionList.length > 0 ? new Date(data.recentSubmissionList[0].timestamp * 1000) : null,
         activeNow: true // Mock for design match
     };
+}
+
+function calculateSolvedToday(submissions) {
+    if (!submissions || submissions.length === 0) return 0;
+    const today = new Date().setHours(0, 0, 0, 0);
+    return submissions.filter(sub => {
+        const subDate = new Date(sub.timestamp * 1000).setHours(0, 0, 0, 0);
+        return subDate === today;
+    }).length;
 }
 
 function renderGrid(data) {
@@ -331,11 +373,12 @@ window.removeUser = function (username) {
     if (confirm('Remove ' + username + '?')) {
         usersData = usersData.filter(u => u.username !== username);
         saveUsers();
-        renderLeaderboard();
+        saveUsers();
+        renderGrid(usersData);
     }
 }
 
-// Export functions (basic stubs)
-document.getElementById('downloadCsv').addEventListener('click', () => alert('CSV Export not implemented'));
+// Export functions
+// CSV is handled by exportToCSV attached earlier
 document.getElementById('downloadExcel').addEventListener('click', () => alert('Excel Export not implemented'));
 document.getElementById('downloadPdf').addEventListener('click', () => alert('PDF Export not implemented'));
