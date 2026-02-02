@@ -14,35 +14,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event Listeners
 addBtn.addEventListener('click', addFriend);
-document.getElementById('downloadBtn').addEventListener('click', exportToCSV);
+// document.getElementById('downloadBtn').addEventListener('click', exportToCSV);
+document.getElementById('downloadCsv').addEventListener('click', exportToCSV);
 usernameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addFriend();
 });
 
 // Initialization
-document.addEventListener('DOMContentLoaded', () => {
-    if (friends.length > 0) {
-        fetchAllData();
-    } else {
-        userGrid.innerHTML = `
-            <div class="glass-panel" style="grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.7;">
-                <i class="fa-solid fa-user-group" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                <h3>No friends added yet</h3>
-                <p>Enter a LeetCode username above to start tracking.</p>
-            </div>
-        `;
-    }
-});
+// Init handled by loadUsers() above
 
 function exportToCSV() {
-    if (currentLeaderboardData.length === 0) {
+    if (usersData.length === 0) {
         alert("No data to export!");
         return;
     }
 
     const headers = ["Rank", "Username", "Status", "Problems Today", "Total Solved", "Global Rank", "Contests", "Easy", "Medium", "Hard", "Last Solved Problem", "Last Solved Time"];
 
-    const rows = currentLeaderboardData.map((user, index) => {
+    const rows = usersData.map((user, index) => {
         const lastSub = user.recentSubs.length > 0 ? user.recentSubs[0] : null;
         const lastProblem = lastSub ? lastSub.title : "-";
         const lastTime = lastSub ? new Date(parseInt(lastSub.timestamp) * 1000).toLocaleString() : "-";
@@ -79,7 +68,7 @@ function exportToCSV() {
     document.body.removeChild(link);
 }
 
-function addFriend() {
+async function addFriend() {
     let input = usernameInput.value.trim();
     if (!input) return;
 
@@ -120,7 +109,8 @@ function addFriend() {
         username = input;
     }
 
-    if (friends.includes(username)) {
+    const existingUser = usersData.some(u => u.username.toLowerCase() === username.toLowerCase());
+    if (existingUser) {
         alert('User already added!');
         return;
     }
