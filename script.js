@@ -154,7 +154,7 @@ async function fetchUserData(username) {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `API Error: ${response.status}`);
+            throw new Error(errorData.error || `API Error (status ${response.status})`);
         }
 
         return await response.json();
